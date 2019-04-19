@@ -9,11 +9,13 @@ import DB from '././db';
 
 // Set up the express app
 const app = express();
+const PORT = process.env.PORT || 5000;;
 
 // parse application/json
 app.use(bodyParser.json())
 
 if(process.env.NODE_ENV !== 'local'){
+
   //auth0
   const jwtCheck = jwt({
     secret: jwks.expressJwtSecret({
@@ -208,7 +210,7 @@ app.post('/api/v1/users', (req,res) => {
 
 });
 
-const PORT = 5000;
+
 
 
 

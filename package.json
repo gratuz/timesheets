@@ -5,7 +5,8 @@
   "main": "app.js",
   "scripts": {
     "test": "NODE_ENV=test./node_modules/mocha/bin/mocha --require babel-core/register",
-    "dev": "NODE_ENV=local node_modules/.bin/babel-node app.js"
+    "dev": "NODE_ENV=local node_modules/.bin/babel-node app.js",
+    "start": "NODE_ENV=prod node_modules/.bin/babel-node app.js",
   },
   "keywords": [
     "timesheets"

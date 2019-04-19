@@ -7,6 +7,11 @@ import dotenv from 'dotenv';
 import Timesheet from './timesheet';
 import DB from '././db';
 
+// Set up the express app
+const app = express();
+
+// parse application/json
+app.use(bodyParser.json())
 
 if(process.env.NODE_ENV !== 'local'){
   //auth0
@@ -29,12 +34,6 @@ if(process.env.NODE_ENV !== 'local'){
 }
 
 const t = new Timesheet(new DB({host:process.env.HOST,database:process.env.DB,password:process.env.PASSWORD,username:process.env.USERNAME}));
-
-// Set up the express app
-const app = express();
-
-// parse application/json
-app.use(bodyParser.json())
 
 
 

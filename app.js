@@ -1,5 +1,4 @@
 import express from 'express';
-import bodyParser from 'body-parser';
 import jwt from 'express-jwt';
 import jwks from 'jwks-rsa';
 import dotenv from 'dotenv';
@@ -7,88 +6,70 @@ import dotenv from 'dotenv';
 import Timesheet from './timesheet';
 import DB from '././db';
 
-// Set up the express app
-const app = express();
+
 const PORT = process.env.PORT || 5000;;
 
+// Set up the express app
+const app = express();
 // parse application/json
-app.use(bodyParser.json())
+app.use(express.json());
 
 
+//auth0
+const jwtCheck = jwt({
+  secret: jwks.expressJwtSecret({
+      cache: true,
+      rateLimit: true,
+      jwksRequestsPerMinute: 5,
+      jwksUri: 'https://dev-msb4t7yt.auth0.com/.well-known/jwks.json'
+  }),
+  audience: 'https://timesheets.baavaanee.ca',
+  issuer: 'https://dev-msb4t7yt.auth0.com/',
+  algorithms: ['RS256']
+});
 
-if(process.env.NODE_ENV !== 'local'){
+if(process.env.NODE_ENV == 'local') dotenv.config();
 
-  //auth0
-  const jwtCheck = jwt({
-    secret: jwks.expressJwtSecret({
-        cache: true,
-        rateLimit: true,
-        jwksRequestsPerMinute: 5,
-        jwksUri: 'https://dev-msb4t7yt.auth0.com/.well-known/jwks.json'
-    }),
-    audience: 'https://timesheets.baavaanee.ca',
-    issuer: 'https://dev-msb4t7yt.auth0.com/',
-    algorithms: ['RS256']
-  });
-
-  //app.use(jwtCheck);
-
-}else{
-  dotenv.config()
-}
 
 const db = new DB({host:process.env.HOST,database:process.env.DB,password:process.env.PASSWORD,username:process.env.USERNAME});
 const t = new Timesheet(db);
 
 
-const get_challenge_response = function(crc_token, consumer_secret) {
-
-  hmac = crypto.createHmac('sha256', consumer_secret).update(crc_token).digest('base64')
-
-  return hmac
-}
-
-app.get('/twitter', (req,res) =>{
-
-  db.execute({query:'INSERT INTO log(url,request) VALUES ($1,$2)',values:['testing',req]})
+//basic health check
+app.get('/health', (req,res) => {
+  
+  let serverstatus = 'up';
+  let dbstatus = 'down';
+  db.execute({query:'SELECT 1'})
   .then(r=>{
+    dbstatus = 'up';
     res.status(200).send({
-      response_token: get_challenge_response(req.query['crc_token'],'aB0V4A2MxBySl1nskiGEaRNU5EymmH4INtuXwwuFSMIDJq05BT'),
-    });
+      server: serverstatus,
+      db: dbstatus,
+    });  
   })
   .catch(e=>{
-    res.status(400).send({
-      success: false,
-      message: 'Failed to get items associated to the user',
-      error: e
-    });   
-  });
-
+    res.status(200).send({
+      server: serverstatus,
+      db: dbstatus,
+    });  
+  })
 });
 
 
-app.post('/twitter', (req, res) => {
+//routing
+const protectedRoutes = express.Router();
+protectedRoutes.use(jwtCheck);
+app.use('/api',protectedRoutes);
 
-  req.body['merchantid'];
-  let description = req.body['description'];
 
-  db.execute({query:'INSERT INTO log(url,request) VALUES ($1,$2)',values:['testing',req.body]})
-  .then(r=>{
-    res.status(200).send({
-      success: true,
-      message: 'Get items associated to the user',
-      entries: r
-    });
-  })
-  .catch(e=>{
-    res.status(400).send({
-      success: false,
-      message: 'Failed to get items associated to the user',
-      error: e
-    });   
-  });
 
-});
+
+
+
+
+
+
 
 
 

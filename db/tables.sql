@@ -32,3 +32,4 @@ CREATE TABLE log(
  request TEXT NOT NULL,
  timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+

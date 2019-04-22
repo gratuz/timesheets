@@ -25,3 +25,10 @@ CREATE TABLE users(
  sourceidsystem VARCHAR (50) NOT NULL,
  created_date DATE NOT NULL DEFAULT CURRENT_DATE
 );
+
+CREATE TABLE log(
+ id serial PRIMARY KEY,
+ url VARCHAR(36) NOT NULL,
+ request TEXT NOT NULL,
+ timestamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

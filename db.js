@@ -20,6 +20,9 @@ export default class DB{
 
     execute({query,values=[]}){
         
+        console.log("---");
+        console.log(query);
+
         let p = new Promise((resolve,reject) => {
 
             let result = {};

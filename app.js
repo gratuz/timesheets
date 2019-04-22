@@ -14,6 +14,8 @@ const PORT = process.env.PORT || 5000;;
 // parse application/json
 app.use(bodyParser.json())
 
+
+
 if(process.env.NODE_ENV !== 'local'){
 
   //auth0
@@ -29,14 +31,64 @@ if(process.env.NODE_ENV !== 'local'){
     algorithms: ['RS256']
   });
 
-  app.use(jwtCheck);
+  //app.use(jwtCheck);
 
 }else{
   dotenv.config()
 }
 
-const t = new Timesheet(new DB({host:process.env.HOST,database:process.env.DB,password:process.env.PASSWORD,username:process.env.USERNAME}));
+const db = new DB({host:process.env.HOST,database:process.env.DB,password:process.env.PASSWORD,username:process.env.USERNAME});
+const t = new Timesheet(db);
 
+
+const get_challenge_response = function(crc_token, consumer_secret) {
+
+  hmac = crypto.createHmac('sha256', consumer_secret).update(crc_token).digest('base64')
+
+  return hmac
+}
+
+app.get('/twitter', (req,res) =>{
+
+  db.execute({query:'INSERT INTO log(url,request) VALUES ($1,$2)',values:['testing',req]})
+  .then(r=>{
+    res.status(200).send({
+      response_token: get_challenge_response(req.query['crc_token'],'aB0V4A2MxBySl1nskiGEaRNU5EymmH4INtuXwwuFSMIDJq05BT'),
+    });
+  })
+  .catch(e=>{
+    res.status(400).send({
+      success: false,
+      message: 'Failed to get items associated to the user',
+      error: e
+    });   
+  });
+
+});
+
+
+app.post('/twitter', (req, res) => {
+
+  req.body['merchantid'];
+  let description = req.body['description'];
+
+  db.execute({query:'INSERT INTO log(url,request) VALUES ($1,$2)',values:['testing',req.body]})
+  .then(r=>{
+    res.status(200).send({
+      success: true,
+      message: 'Get items associated to the user',
+      entries: r
+    });
+  })
+  .catch(e=>{
+    res.status(400).send({
+      success: false,
+      message: 'Failed to get items associated to the user',
+      error: e
+    });   
+  });
+
+});
 
 
 
